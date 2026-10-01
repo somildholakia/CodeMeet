@@ -26,7 +26,7 @@ export default function MeetingRoom() {
   const [displayStream, setDisplayStream] = useState(null); // set while screen-sharing, shown in local tile
   const screenStreamRef = useRef(null);
 
-  const { stream: localStream, isMuted, isCameraOff, toggleMic, toggleCamera } = useLocalMedia();
+  const { stream: localStream, isMuted, isCameraOff, toggleMic, toggleCamera, error: mediaError } = useLocalMedia();
   const { remoteStreams, replaceVideoTrack } = useWebRTC(socket, roomId, localStream);
 
   useEffect(() => {
@@ -40,10 +40,18 @@ export default function MeetingRoom() {
   }, [roomId, navigate]);
 
   useEffect(() => {
+    if (mediaError) toast.error(`Camera/microphone unavailable: ${mediaError}`, { duration: 5000 });
+  }, [mediaError]);
+
+  useEffect(() => {
     if (!localStream || !user) return;
 
+    const handleSocketConnectError = (error) => toast.error(error?.message || 'Unable to connect to the meeting.');
+    const handleRoomError = ({ message }) => { toast.error(message || 'Meeting is unavailable.'); navigate('/dashboard'); };
+    socket.on('connect_error', handleSocketConnectError);
+    socket.on('room-error', handleRoomError);
     socket.connect();
-    socket.emit('join-room', { roomId, user: { id: user.id, name: user.name } });
+    socket.emit('join-room', { roomId });
 
     const handleUserJoined = ({ socketId, user: joinedUser }) => {
       setParticipantMeta((prev) => ({ ...prev, [socketId]: { user: joinedUser } }));
@@ -84,6 +92,8 @@ export default function MeetingRoom() {
       socket.off('user-left', handleUserLeft);
       socket.off('mic-toggle', handleMicToggle);
       socket.off('camera-toggle', handleCameraToggle);
+      socket.off('connect_error', handleSocketConnectError);
+      socket.off('room-error', handleRoomError);
       socket.disconnect();
     };
   }, [localStream, user, socket, roomId]);
