@@ -1,4 +1,5 @@
 import Meeting from '../models/Meeting.js';
+import Message from '../models/Message.js';
 
 const roomCodeCache = new Map();
 const roomLanguageCache = new Map();
@@ -86,17 +87,30 @@ export function registerSocketHandlers(io) {
       });
     });
 
-    socket.on('send-message', ({ roomId, message }) => {
+    socket.on('send-message', async ({ roomId, message }) => {
       if (socket.data.roomId !== roomId || !message?.text) return;
 
       const text = String(message.text).trim().slice(0, 2000);
       if (!text) return;
 
+      const meeting = await Meeting.findOne({ roomId }).select('_id');
+      if (!meeting) return;
+
+      const createdAt = new Date();
+      await Message.create({
+        meeting: meeting._id,
+        sender: user.id,
+        senderName: user.name,
+        text,
+        createdAt,
+        updatedAt: createdAt,
+      });
+
       socket.to(roomId).emit('receive-message', {
         senderId: user.id,
         senderName: user.name,
         text,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAt.toISOString(),
       });
     });
 
