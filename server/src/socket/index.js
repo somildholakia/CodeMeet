@@ -163,7 +163,7 @@ export function registerSocketHandlers(io) {
           updatedAt: createdAt,
         });
 
-        socket.to(roomId).emit('receive-message', {
+        io.to(roomId).emit('receive-message', {
           id: savedMessage._id.toString(),
           senderId: user.id,
           senderName: user.name,
