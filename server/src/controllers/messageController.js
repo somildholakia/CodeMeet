@@ -6,6 +6,12 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 export const getMessages = asyncHandler(async (req, res) => {
   const meeting = await Meeting.findOne({ roomId: req.params.meetingId });
   if (!meeting) throw new ApiError(404, 'Meeting not found');
+  if (meeting.status === 'ended') throw new ApiError(410, 'Meeting has ended');
+
+  const isParticipant = meeting.participants.some(
+    (participant) => participant.toString() === req.user._id.toString()
+  );
+  if (!isParticipant) throw new ApiError(403, 'You are not a participant in this meeting');
 
   const messages = await Message.find({ meeting: meeting._id }).sort({ createdAt: 1 });
   res.json({ success: true, messages });
@@ -15,6 +21,12 @@ export const postMessage = asyncHandler(async (req, res) => {
   const { meetingId, text } = req.body;
   const meeting = await Meeting.findOne({ roomId: meetingId });
   if (!meeting) throw new ApiError(404, 'Meeting not found');
+  if (meeting.status === 'ended') throw new ApiError(410, 'Meeting has ended');
+
+  const isParticipant = meeting.participants.some(
+    (participant) => participant.toString() === req.user._id.toString()
+  );
+  if (!isParticipant) throw new ApiError(403, 'You are not a participant in this meeting');
 
   const message = await Message.create({
     meeting: meeting._id,
