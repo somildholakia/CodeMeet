@@ -22,6 +22,10 @@ jobs:
           cache-dependency-path: server/package-lock.json
       - run: npm ci
       - run: node --check src/server.js
+      - name: Security audit
+        run: npm audit --json > audit.json || true
+      - name: Print audit summary
+        run: node -e "const r=require('./audit.json'); console.log(JSON.stringify(r.metadata?.vulnerabilities || r.vulnerabilities || {}, null, 2));"
 
   client:
     runs-on: ubuntu-latest
