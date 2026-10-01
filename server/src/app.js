@@ -13,12 +13,13 @@ import { notFound, errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
 );
 app.use(express.json({ limit: '1mb' }));
@@ -32,7 +33,15 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-app.get('/api/health', (req, res) => res.json({ success: true, status: 'ok' }));
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    status: 'ok',
+    service: 'CodeMeet API',
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime()),
+  });
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/meetings', meetingRoutes);
