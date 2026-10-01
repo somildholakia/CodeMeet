@@ -35,6 +35,7 @@ export const getMeeting = asyncHandler(async (req, res) => {
     'name avatar'
   );
   if (!meeting) throw new ApiError(404, 'Meeting not found');
+  if (meeting.status === 'ended') throw new ApiError(410, 'Meeting has ended');
 
   const alreadyIn = meeting.participants.some(
     (p) => p.toString() === req.user._id.toString()
