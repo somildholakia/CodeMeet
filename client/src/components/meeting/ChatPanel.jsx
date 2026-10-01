@@ -92,16 +92,6 @@ export default function ChatPanel({ socket, roomId, currentUser }) {
     const trimmed = text.trim();
     if (!trimmed || !socket?.connected) return;
 
-    const optimisticId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    setMessages((prev) =>
-      mergeMessages(prev, [{
-        id: optimisticId,
-        senderName: currentUser.name,
-        senderId: currentUser.id,
-        text: trimmed,
-        createdAt: new Date().toISOString(),
-      }])
-    );
     socket.emit('send-message', { roomId, message: { text: trimmed } });
     setText('');
     socket.emit('typing', { roomId, isTyping: false });
