@@ -130,8 +130,10 @@ export function useWebRTC(socket, roomId, localStream) {
   useEffect(() => {
     if (!socket || !localStream) return;
 
-    const handleParticipants = (socketIds = []) => {
-      socketIds.forEach((id) => {
+    const handleParticipants = (participants = []) => {
+      participants.forEach((participant) => {
+        const id = typeof participant === 'string' ? participant : participant?.socketId;
+        if (!id) return;
         createPeer(id);
         void createAndSendOffer(id);
       });
