@@ -1,0 +1,17 @@
+name: Keep CodeMeet Awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping CodeMeet API
+        run: |
+          set -e
+          curl --fail --silent --show-error             --max-time 20             -H "User-Agent: CodeMeet-KeepAlive/1.0"             "https://codemeet-adp3.onrender.com/api/health"
+          echo
+          echo "CodeMeet health check passed."
