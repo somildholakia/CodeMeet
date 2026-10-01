@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Send } from 'lucide-react';
 import Button from '../ui/Button.jsx';
 import Input from '../ui/Input.jsx';
+import { api } from '../../lib/api.js';
 
 export default function ChatPanel({ socket, roomId, currentUser }) {
   const [messages, setMessages] = useState([]);
@@ -11,7 +12,26 @@ export default function ChatPanel({ socket, roomId, currentUser }) {
   const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
-    if (!socket) return;
+    let cancelled = false;
+
+    api.get(`/messages/${roomId}`)
+      .then(({ data }) => {
+        if (!cancelled) {
+          setMessages(
+            (data.messages || []).map((message) => ({
+              senderId: message.sender?._id || message.sender,
+              senderName: message.senderName,
+              text: message.text,
+              createdAt: message.createdAt,
+            }))
+          );
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setMessages([]);
+      });
+
+    if (!socket) return () => { cancelled = true; };
 
     const handleReceive = (message) => setMessages((prev) => [...prev, message]);
     const handleTyping = ({ user, isTyping }) => {
@@ -22,10 +42,12 @@ export default function ChatPanel({ socket, roomId, currentUser }) {
     socket.on('typing', handleTyping);
 
     return () => {
+      cancelled = true;
       socket.off('receive-message', handleReceive);
       socket.off('typing', handleTyping);
+      clearTimeout(typingTimeoutRef.current);
     };
-  }, [socket]);
+  }, [socket, roomId]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -33,26 +55,31 @@ export default function ChatPanel({ socket, roomId, currentUser }) {
 
   const handleSend = (e) => {
     e.preventDefault();
-    if (!text.trim()) return;
+    const trimmed = text.trim();
+    if (!trimmed || !socket?.connected) return;
 
-    const message = {
-      senderName: currentUser.name,
-      senderId: currentUser.id,
-      text: text.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, message]);
-    socket.emit('send-message', { roomId, message });
+    setMessages((prev) => [
+      ...prev,
+      {
+        senderName: currentUser.name,
+        senderId: currentUser.id,
+        text: trimmed,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    socket.emit('send-message', { roomId, message: { text: trimmed } });
     setText('');
+    socket.emit('typing', { roomId, isTyping: false });
+    clearTimeout(typingTimeoutRef.current);
   };
 
   const handleTypingChange = (e) => {
-    setText(e.target.value);
-    socket.emit('typing', { roomId, user: currentUser, isTyping: true });
+    const nextText = e.target.value.slice(0, 2000);
+    setText(nextText);
+    socket?.emit('typing', { roomId, isTyping: Boolean(nextText.trim()) });
     clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('typing', { roomId, user: currentUser, isTyping: false });
+      socket?.emit('typing', { roomId, isTyping: false });
     }, 1500);
   };
 
@@ -65,7 +92,7 @@ export default function ChatPanel({ socket, roomId, currentUser }) {
         {messages.map((m, i) => {
           const isSelf = m.senderId === currentUser.id;
           return (
-            <div key={i} className={isSelf ? 'text-right' : 'text-left'}>
+            <div key={`${m.createdAt}-${m.senderId}-${i}`} className={isSelf ? 'text-right' : 'text-left'}>
               <p className="text-[11px] text-text-muted">
                 {isSelf ? 'You' : m.senderName} · {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
@@ -86,8 +113,8 @@ export default function ChatPanel({ socket, roomId, currentUser }) {
       {typingUser && <p className="px-3 pb-1 text-xs text-text-muted">{typingUser} is typing…</p>}
 
       <form onSubmit={handleSend} className="flex gap-2 border-t border-border p-3">
-        <Input placeholder="Type a message" value={text} onChange={handleTypingChange} />
-        <Button type="submit" size="sm">
+        <Input placeholder="Type a message" value={text} onChange={handleTypingChange} maxLength={2000} />
+        <Button type="submit" size="sm" disabled={!socket?.connected}>
           <Send className="h-4 w-4" />
         </Button>
       </form>
