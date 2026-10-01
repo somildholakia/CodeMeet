@@ -53,6 +53,16 @@ export default function MeetingRoom() {
     socket.connect();
     socket.emit('join-room', { roomId });
 
+    const handleRoomParticipants = (participants = []) => {
+      setParticipantMeta((prev) => {
+        const next = { ...prev };
+        participants.forEach(({ socketId, user: participantUser }) => {
+          if (socketId && participantUser) next[socketId] = { ...next[socketId], user: participantUser };
+        });
+        return next;
+      });
+    };
+
     const handleUserJoined = ({ socketId, user: joinedUser }) => {
       setParticipantMeta((prev) => ({ ...prev, [socketId]: { user: joinedUser } }));
       toast(`${joinedUser.name} joined`, { icon: '👋' });
@@ -81,6 +91,7 @@ export default function MeetingRoom() {
       }));
     };
 
+    socket.on('room-participants', handleRoomParticipants);
     socket.on('user-joined', handleUserJoined);
     socket.on('user-left', handleUserLeft);
     socket.on('mic-toggle', handleMicToggle);
@@ -88,6 +99,7 @@ export default function MeetingRoom() {
 
     return () => {
       socket.emit('leave-room');
+      socket.off('room-participants', handleRoomParticipants);
       socket.off('user-joined', handleUserJoined);
       socket.off('user-left', handleUserLeft);
       socket.off('mic-toggle', handleMicToggle);
