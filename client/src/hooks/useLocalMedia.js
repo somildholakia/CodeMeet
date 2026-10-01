@@ -12,6 +12,17 @@ export function useLocalMedia() {
 
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
+      .catch(async (firstError) => {
+        try {
+          return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+        } catch (audioError) {
+          try {
+            return await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          } catch {
+            throw firstError;
+          }
+        }
+      })
       .then((mediaStream) => {
         if (cancelled) {
           mediaStream.getTracks().forEach((t) => t.stop());
@@ -20,7 +31,7 @@ export function useLocalMedia() {
         streamRef.current = mediaStream;
         setStream(mediaStream);
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => setError(err.message || 'Camera and microphone access is unavailable.'));
 
     return () => {
       cancelled = true;
