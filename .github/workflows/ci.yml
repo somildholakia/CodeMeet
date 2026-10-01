@@ -20,7 +20,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: server/package-lock.json
-      - run: npm install
+      - run: npm ci
       - run: node --check src/server.js
 
   client:
@@ -35,5 +35,5 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: client/package-lock.json
-      - run: npm install
+      - run: npm ci
       - run: npm run build
