@@ -1,11 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 import Meeting from '../models/Meeting.js';
 import User from '../models/User.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const createMeeting = asyncHandler(async (req, res) => {
-  const roomId = uuidv4().slice(0, 8);
+  const roomId = randomUUID().replace(/-/g, '').slice(0, 8);
   const meeting = await Meeting.create({
     roomId,
     title: req.body.title || 'Untitled Meeting',
