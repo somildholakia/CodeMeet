@@ -61,7 +61,7 @@ export default function CodeEditor({ socket, roomId, initialCode }) {
         style.textContent = `
           .${className} { border-left: 2px solid ${color}; margin-left: -1px; }
           .${className}::after {
-            content: '${(user?.name || 'Guest').replace(/'/g, '')}';
+            content: '${(user?.name || 'Guest').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, ' ')}';
             position: relative; top: -1.1em; left: -1px;
             background: ${color}; color: #fff; font-size: 10px;
             padding: 0 4px; border-radius: 3px; white-space: nowrap;
@@ -102,6 +102,8 @@ export default function CodeEditor({ socket, roomId, initialCode }) {
     socket.emit('code-sync-request', { roomId });
 
     return () => {
+      clearTimeout(debounceRef.current);
+      clearTimeout(cursorThrottleRef.current);
       socket.off('code-change', handleRemoteChange);
       socket.off('cursor-change', handleCursorChange);
       socket.off('user-left', handleUserLeft);
@@ -122,14 +124,15 @@ export default function CodeEditor({ socket, roomId, initialCode }) {
 
   const handleChange = useCallback(
     (value) => {
-      setCode(value);
+      const nextCode = value ?? '';
+      setCode(nextCode);
       if (isRemoteUpdate.current) {
         isRemoteUpdate.current = false;
         return;
       }
       clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        socket?.emit('code-change', { roomId, code: value, language });
+        socket?.emit('code-change', { roomId, code: nextCode, language });
       }, 200);
     },
     [socket, roomId, language]
