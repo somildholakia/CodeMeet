@@ -3,6 +3,8 @@ import Message from '../models/Message.js';
 
 const roomCodeCache = new Map();
 const roomLanguageCache = new Map();
+const MAX_CODE_LENGTH = 20000;
+const ALLOWED_LANGUAGES = new Set(['javascript', 'typescript', 'python', 'java', 'c', 'cpp', 'go', 'rust']);
 
 export function registerSocketHandlers(io) {
   io.on('connection', (socket) => {
@@ -38,8 +40,12 @@ export function registerSocketHandlers(io) {
 
       const room = io.sockets.adapter.rooms.get(roomId);
       const otherSocketIds = room ? [...room].filter((id) => id !== socket.id) : [];
+      const otherParticipants = otherSocketIds.map((id) => ({
+        socketId: id,
+        user: io.sockets.sockets.get(id)?.user || null,
+      }));
 
-      socket.emit('room-participants', otherSocketIds);
+      socket.emit('room-participants', otherParticipants);
       socket.emit('code-change', {
         code: roomCodeCache.get(roomId) || '',
         language: roomLanguageCache.get(roomId) || 'javascript',
@@ -56,6 +62,8 @@ export function registerSocketHandlers(io) {
 
     socket.on('code-change', ({ roomId, code, language }) => {
       if (socket.data.roomId !== roomId || typeof code !== 'string') return;
+      if (code.length > MAX_CODE_LENGTH) return;
+      if (language && !ALLOWED_LANGUAGES.has(language)) return;
 
       roomCodeCache.set(roomId, code);
       if (language) roomLanguageCache.set(roomId, language);
@@ -93,25 +101,30 @@ export function registerSocketHandlers(io) {
       const text = String(message.text).trim().slice(0, 2000);
       if (!text) return;
 
-      const meeting = await Meeting.findOne({ roomId }).select('_id');
-      if (!meeting) return;
+      try {
+        const meeting = await Meeting.findOne({ roomId }).select('_id status');
+        if (!meeting || meeting.status === 'ended') return;
 
-      const createdAt = new Date();
-      await Message.create({
+        const createdAt = new Date();
+        await Message.create({
         meeting: meeting._id,
         sender: user.id,
         senderName: user.name,
         text,
         createdAt,
-        updatedAt: createdAt,
-      });
+          updatedAt: createdAt,
+        });
 
-      socket.to(roomId).emit('receive-message', {
+        socket.to(roomId).emit('receive-message', {
         senderId: user.id,
         senderName: user.name,
         text,
-        createdAt: createdAt.toISOString(),
-      });
+          createdAt: createdAt.toISOString(),
+        });
+      } catch (error) {
+        console.error('Failed to persist socket message:', error);
+        socket.emit('socket-error', { message: 'Message could not be sent.' });
+      }
     });
 
     socket.on('typing', ({ roomId, isTyping }) => {
@@ -123,7 +136,9 @@ export function registerSocketHandlers(io) {
     });
 
     socket.on('webrtc-offer', ({ to, offer }) => {
-      if (typeof to !== 'string' || !offer) return;
+      if (typeof to !== 'string' || !offer || !socket.data.roomId) return;
+      const target = io.sockets.sockets.get(to);
+      if (!target || target.data.roomId !== socket.data.roomId) return;
       io.to(to).emit('webrtc-offer', {
         from: socket.id,
         offer,
@@ -131,7 +146,9 @@ export function registerSocketHandlers(io) {
     });
 
     socket.on('webrtc-answer', ({ to, answer }) => {
-      if (typeof to !== 'string' || !answer) return;
+      if (typeof to !== 'string' || !answer || !socket.data.roomId) return;
+      const target = io.sockets.sockets.get(to);
+      if (!target || target.data.roomId !== socket.data.roomId) return;
       io.to(to).emit('webrtc-answer', {
         from: socket.id,
         answer,
@@ -139,7 +156,9 @@ export function registerSocketHandlers(io) {
     });
 
     socket.on('webrtc-ice-candidate', ({ to, candidate }) => {
-      if (typeof to !== 'string' || !candidate) return;
+      if (typeof to !== 'string' || !candidate || !socket.data.roomId) return;
+      const target = io.sockets.sockets.get(to);
+      if (!target || target.data.roomId !== socket.data.roomId) return;
       io.to(to).emit('webrtc-ice-candidate', {
         from: socket.id,
         candidate,
