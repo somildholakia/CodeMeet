@@ -4,6 +4,34 @@ import Button from '../ui/Button.jsx';
 import Input from '../ui/Input.jsx';
 import { api } from '../../lib/api.js';
 
+function normalizeMessage(message) {
+  return {
+    id: message.id || message._id || null,
+    senderId: message.senderId || message.sender?._id || message.sender,
+    senderName: message.senderName || message.sender?.name || 'Unknown',
+    text: message.text,
+    createdAt: message.createdAt,
+  };
+}
+
+function mergeMessages(existing, incoming) {
+  const byId = new Map();
+  existing.forEach((message) => {
+    if (message.id) byId.set(message.id, message);
+    else byId.set(`${message.createdAt}-${message.senderId}-${message.text}`, message);
+  });
+
+  incoming.forEach((message) => {
+    const normalized = normalizeMessage(message);
+    const key = normalized.id || `${normalized.createdAt}-${normalized.senderId}-${normalized.text}`;
+    if (!byId.has(key)) byId.set(key, normalized);
+  });
+
+  return [...byId.values()].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+}
+
 export default function ChatPanel({ socket, roomId, currentUser }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
@@ -17,23 +45,29 @@ export default function ChatPanel({ socket, roomId, currentUser }) {
     api.get(`/messages/${roomId}`)
       .then(({ data }) => {
         if (!cancelled) {
-          setMessages(
-            (data.messages || []).map((message) => ({
-              senderId: message.sender?._id || message.sender,
-              senderName: message.senderName,
-              text: message.text,
-              createdAt: message.createdAt,
-            }))
+          setMessages((previous) =>
+            mergeMessages(
+              previous,
+              (data.messages || []).map((message) => ({
+                id: message._id,
+                senderId: message.sender?._id || message.sender,
+                senderName: message.senderName,
+                text: message.text,
+                createdAt: message.createdAt,
+              }))
+            )
           );
         }
       })
       .catch(() => {
-        if (!cancelled) setMessages([]);
+        if (!cancelled) setMessages((previous) => previous);
       });
 
     if (!socket) return () => { cancelled = true; };
 
-    const handleReceive = (message) => setMessages((prev) => [...prev, message]);
+    const handleReceive = (message) => {
+      setMessages((prev) => mergeMessages(prev, [message]));
+    };
     const handleTyping = ({ user, isTyping }) => {
       setTypingUser(isTyping ? user.name : null);
     };
@@ -58,15 +92,16 @@ export default function ChatPanel({ socket, roomId, currentUser }) {
     const trimmed = text.trim();
     if (!trimmed || !socket?.connected) return;
 
-    setMessages((prev) => [
-      ...prev,
-      {
+    const optimisticId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setMessages((prev) =>
+      mergeMessages(prev, [{
+        id: optimisticId,
         senderName: currentUser.name,
         senderId: currentUser.id,
         text: trimmed,
         createdAt: new Date().toISOString(),
-      },
-    ]);
+      }])
+    );
     socket.emit('send-message', { roomId, message: { text: trimmed } });
     setText('');
     socket.emit('typing', { roomId, isTyping: false });
@@ -92,7 +127,7 @@ export default function ChatPanel({ socket, roomId, currentUser }) {
         {messages.map((m, i) => {
           const isSelf = m.senderId === currentUser.id;
           return (
-            <div key={`${m.createdAt}-${m.senderId}-${i}`} className={isSelf ? 'text-right' : 'text-left'}>
+            <div key={m.id || `${m.createdAt}-${m.senderId}-${i}`} className={isSelf ? 'text-right' : 'text-left'}>
               <p className="text-[11px] text-text-muted">
                 {isSelf ? 'You' : m.senderName} · {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
