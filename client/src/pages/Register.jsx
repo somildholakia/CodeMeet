@@ -35,7 +35,7 @@ export default function Register() {
 
   return (
     <AuthLayout title="Create your account" subtitle="Start collaborating in minutes">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
           <label className="mb-1.5 block text-sm text-text-secondary">Name</label>
           <Input placeholder="Ada Lovelace" {...register('name')} error={!!errors.name} />

@@ -1,157 +1,59 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Video, Code2, Zap, Users, MessageSquare, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Video, Code2, Zap, Users, MessageSquare, ShieldCheck, ArrowRight, Sparkles, Play, Terminal, AudioLines } from 'lucide-react';
 import Navbar from '../components/landing/Navbar.jsx';
 import Button from '../components/ui/Button.jsx';
 import Card from '../components/ui/Card.jsx';
 
 const features = [
-  { icon: Video, title: 'HD Video Calls', desc: 'Low-latency WebRTC video with screen sharing and adaptive layouts.' },
-  { icon: Code2, title: 'Live Code Editor', desc: 'Monaco-powered editor synced in real time across every participant.' },
-  { icon: Zap, title: 'Instant Execution', desc: 'Run code in 8+ languages and see output, time, and memory instantly.' },
-  { icon: MessageSquare, title: 'Built-in Chat', desc: 'Discuss without leaving the room, with typing indicators and history.' },
-  { icon: Users, title: 'Multi-Participant', desc: 'Bring your whole team into a single collaborative session.' },
-  { icon: ShieldCheck, title: 'Secure by Default', desc: 'JWT auth, HTTP-only cookies, and encrypted signalling throughout.' },
+  [Video, 'Face-to-face, instantly', 'Clear video and screen sharing that keep the conversation moving.', 'bg-[#fff0e9] text-[#e85b3c]'],
+  [Code2, 'One shared workspace', 'Edit together in a familiar code editor, with every change in sync.', 'bg-[#f0eaff] text-[#8666d7]'],
+  [Zap, 'Run it right here', 'Execute code and inspect output without breaking your flow.', 'bg-[#fff5cf] text-[#a97914]'],
+  [MessageSquare, 'Conversation included', 'Drop a thought, share a link, or ask a quick question in chat.', 'bg-[#e5f6ec] text-[#23866a]'],
+  [Users, 'Made for the whole team', 'Pair, interview, mentor, and debug together in one room.', 'bg-[#ffe8f0] text-[#cf5785]'],
+  [ShieldCheck, 'Your space, protected', 'Secure accounts and private rooms, built into the experience.', 'bg-[#f0ece6] text-[#51473f]'],
 ];
-
 const steps = [
-  { step: '01', title: 'Create a room', desc: 'Spin up a meeting in one click and share the link with your team.' },
-  { step: '02', title: 'Join & connect', desc: 'Participants join instantly with camera, mic, and editor in sync.' },
-  { step: '03', title: 'Build together', desc: 'Write, run, and debug code live while talking it through on video.' },
-];
-
-const stats = [
-  { value: '10k+', label: 'Sessions hosted' },
-  { value: '8', label: 'Languages supported' },
-  { value: '<150ms', label: 'Editor sync latency' },
-  { value: '99.9%', label: 'Uptime' },
+  ['01', 'Make a room', 'Start a fresh session in one click.', '#f45d3e'],
+  ['02', 'Bring your people', 'Share one link and get everyone in.', '#a78bfa'],
+  ['03', 'Figure it out together', 'Talk, type, run, and solve as a team.', '#7bc9a0'],
 ];
 
 export default function Landing() {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
-      <section className="relative overflow-hidden px-4 pb-24 pt-20 sm:px-6">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_60%)]" />
-        <div className="mx-auto max-w-3xl text-center">
-          <motion.span
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center rounded-full border border-border bg-surface px-3 py-1 text-xs text-text-secondary"
-          >
-            Now with real-time collaborative execution
-          </motion.span>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="mt-6 text-4xl font-semibold tracking-tight text-text sm:text-5xl"
-          >
-            Code together. Talk it through.{' '}
-            <span className="text-primary">Ship faster.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mx-auto mt-5 max-w-xl text-base text-text-secondary"
-          >
-            CodeMeet combines video conferencing with a real-time collaborative editor and
-            instant code execution — built for pair programming, interviews, and remote teams.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mt-8 flex items-center justify-center gap-3"
-          >
-            <Link to="/register">
-              <Button size="lg">
-                Start for free <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="secondary" size="lg">Log in</Button>
-            </Link>
+  return <div className="min-h-screen overflow-hidden bg-background">
+    <Navbar />
+    <main>
+      <section className="relative px-4 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20">
+        <div className="pointer-events-none absolute -right-20 top-8 h-64 w-64 rounded-full bg-[#f7c4b4]/45 blur-3xl sm:right-[8%] sm:h-80 sm:w-80" />
+        <div className="pointer-events-none absolute -left-20 top-48 h-52 w-52 rounded-full bg-[#d9ccff]/50 blur-3xl" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.03fr_.97fr] lg:gap-16">
+          <div className="relative z-10 max-w-2xl">
+            <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="inline-flex items-center gap-2 rounded-full border border-[#f0d6c8] bg-white/80 px-3.5 py-2 text-xs font-semibold text-[#7b5546] shadow-sm"><Sparkles className="h-3.5 w-3.5 text-primary"/> Your team's new favourite room</motion.div>
+            <motion.h1 initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:.05}} className="mt-6 text-[2.8rem] font-semibold leading-[1.02] tracking-[-.055em] text-text sm:text-6xl lg:text-[4.4rem]">Great work<br/>happens <span className="relative inline-block whitespace-nowrap text-primary">together.<svg aria-hidden="true" viewBox="0 0 260 15" className="absolute -bottom-1 left-0 w-full" fill="none"><path d="M4 9C66 2 163 2 255 7" stroke="#F5D56E" strokeWidth="7" strokeLinecap="round"/></svg></span></motion.h1>
+            <motion.p initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:.1}} className="mt-6 max-w-lg text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">Video calls, live code, and quick ideas — all in one friendly space. Less tab juggling. More making things that work.</motion.p>
+            <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:.15}} className="mt-8 flex flex-wrap items-center gap-3"><Link to="/register"><Button size="lg" className="rounded-full px-6 shadow-lg shadow-[#f45d3e]/20">Start a room <ArrowRight className="h-4 w-4"/></Button></Link><Link to="/login"><Button variant="secondary" size="lg" className="rounded-full px-6">I have an account</Button></Link></motion.div>
+            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-text-muted"><span>✓ No downloads</span><span>✓ Built for developers</span><span>✓ Ready when you are</span></div>
+          </div>
+          <motion.div initial={{opacity:0,scale:.97,y:12}} animate={{opacity:1,scale:1,y:0}} transition={{delay:.12,duration:.5}} className="relative mx-auto w-full max-w-[540px]">
+            <div className="absolute -left-5 top-10 z-20 hidden -rotate-6 rounded-2xl bg-[#c8efd9] px-4 py-3 shadow-lg sm:block"><div className="text-[10px] font-bold uppercase tracking-[.15em] text-[#39755c]">IN SYNC</div><div className="mt-0.5 text-sm font-semibold text-[#244d3c]">Ideas in motion ↗</div></div>
+            <div className="absolute -right-3 bottom-16 z-20 hidden rotate-3 rounded-2xl bg-[#f9d6e4] px-4 py-3 shadow-lg sm:block"><div className="text-[10px] font-bold uppercase tracking-[.15em] text-[#a64d70]">LIVE SESSION</div><div className="mt-0.5 text-sm font-semibold text-[#72364d]">You + your team</div></div>
+            <div className="overflow-hidden rounded-[2rem] border border-[#e8ded2] bg-white p-3 shadow-[0_28px_90px_-30px_rgba(75,47,28,.28)] sm:p-4">
+              <div className="flex items-center justify-between border-b border-[#f0e8df] px-2 pb-3 pt-1 sm:px-3"><div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#ffede6] text-primary"><Code2 className="h-4 w-4"/></span><div><p className="text-xs font-bold text-text">Frontend pairing</p><p className="mt-0.5 text-[10px] text-text-muted">Room / daily-build</p></div></div><span className="inline-flex items-center gap-1.5 rounded-full bg-[#e7f6ed] px-2.5 py-1.5 text-[10px] font-semibold text-[#23866a]"><span className="h-1.5 w-1.5 rounded-full bg-[#32a879]"/> 3 here</span></div>
+              <div className="grid grid-cols-[1fr_.88fr] gap-3 py-3 sm:gap-4 sm:py-4">
+                <div className="flex min-h-[210px] flex-col rounded-2xl bg-[#282722] p-3 font-mono text-[10px] leading-[1.9] text-[#e8e3d9] sm:min-h-[250px] sm:p-4 sm:text-xs"><div className="mb-4 flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#f45d3e]"/><span className="h-2 w-2 rounded-full bg-[#f5d56e]"/><span className="h-2 w-2 rounded-full bg-[#91d8b2]"/><span className="ml-auto text-[9px] text-[#a7a197]">app.jsx</span></div><p><span className="text-[#c4a7ff]">const</span> <span className="text-[#f5d56e]">teamwork</span> = {'{'}</p><p className="pl-3"><span className="text-[#8bdcb5]">ideas</span>: <span className="text-[#f6a7c6]">'shared'</span>,</p><p className="pl-3"><span className="text-[#8bdcb5]">coffee</span>: <span className="text-[#f6a7c6]">true</span>,</p><p className="pl-3"><span className="text-[#8bdcb5]">bugs</span>: <span className="text-[#f5d56e]">'fixed'</span></p><p>{'}'}</p><p className="mt-4 text-[#a7a197]">// ship it together ✨</p><div className="mt-auto flex items-center gap-2 border-t border-white/10 pt-3"><span className="h-5 w-5 rounded-full bg-[#c8efd9]"/><span className="h-5 w-5 rounded-full bg-[#f6a7c6]"/><span className="h-5 w-5 rounded-full bg-[#c9b8ff]"/><span className="text-[9px] text-[#b8b0a4]">editing together</span></div></div>
+                <div className="flex flex-col gap-3"><div className="relative min-h-[120px] flex-1 overflow-hidden rounded-2xl bg-[#d9e9df] p-3 sm:min-h-[145px]"><div className="absolute -right-4 -top-6 h-24 w-24 rounded-full bg-[#a6d5bb]"/><div className="absolute bottom-[-16px] left-1/2 h-28 w-24 -translate-x-1/2 rounded-t-[48px] bg-[#b87f67]"/><div className="absolute bottom-[70px] left-1/2 h-14 w-14 -translate-x-1/2 rounded-full bg-[#f0bd9e] sm:bottom-[82px] sm:h-16 sm:w-16"/><div className="absolute bottom-3 left-3 rounded-lg bg-black/40 px-2 py-1 text-[9px] font-medium text-white">Maya · speaking</div><div className="absolute right-3 top-3 rounded-full bg-white/70 p-1.5 text-[#23866a]"><AudioLines className="h-3 w-3"/></div></div><div className="rounded-2xl bg-[#fff4ce] p-3 sm:p-4"><div className="flex items-center justify-between"><span className="text-[10px] font-bold text-[#8e6a1c]">QUICK CHAT</span><MessageSquare className="h-3.5 w-3.5 text-[#a97914]"/></div><div className="mt-3 space-y-2"><div className="w-fit rounded-xl rounded-tl-sm bg-white px-2.5 py-2 text-[10px] text-[#66563b]">Found the fix 👀</div><div className="ml-auto w-fit rounded-xl rounded-tr-sm bg-[#f45d3e] px-2.5 py-2 text-[10px] text-white">Nice, let's ship!</div></div></div></div>
+              </div>
+              <div className="flex items-center justify-center gap-3 rounded-2xl bg-[#f8f4ee] px-3 py-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#61584f]"><AudioLines className="h-4 w-4"/></span><span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#61584f]"><Video className="h-4 w-4"/></span><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f45d3e] text-white shadow-md shadow-[#f45d3e]/20"><Play className="h-4 w-4 fill-current"/></span><span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#61584f]"><MessageSquare className="h-4 w-4"/></span></div>
+            </div>
           </motion.div>
         </div>
       </section>
-
-      <section id="features" className="px-4 py-20 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="mx-auto max-w-xl text-center">
-            <h2 className="text-2xl font-semibold text-text sm:text-3xl">Everything you need to collaborate</h2>
-            <p className="mt-3 text-sm text-text-secondary">
-              A focused toolset for engineering conversations — nothing bolted on, nothing missing.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map(({ icon: Icon, title, desc }) => (
-              <Card key={title} className="p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Icon className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="mt-4 text-sm font-semibold text-text">{title}</h3>
-                <p className="mt-2 text-sm text-text-secondary">{desc}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="how-it-works" className="border-y border-border/60 bg-surface/40 px-4 py-20 sm:px-6">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-center text-2xl font-semibold text-text sm:text-3xl">How it works</h2>
-          <div className="mt-12 grid gap-8 sm:grid-cols-3">
-            {steps.map((s) => (
-              <div key={s.step}>
-                <span className="text-sm font-semibold text-primary">{s.step}</span>
-                <h3 className="mt-2 text-base font-semibold text-text">{s.title}</h3>
-                <p className="mt-2 text-sm text-text-secondary">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="stats" className="px-4 py-20 sm:px-6">
-        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-8 text-center sm:grid-cols-4">
-          {stats.map((s) => (
-            <div key={s.label}>
-              <div className="text-2xl font-semibold text-text sm:text-3xl">{s.value}</div>
-              <div className="mt-1 text-xs text-text-muted">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="px-4 pb-24 sm:px-6">
-        <Card className="mx-auto flex max-w-4xl flex-col items-center gap-4 p-10 text-center">
-          <h2 className="text-2xl font-semibold text-text">Ready to pair program smarter?</h2>
-          <p className="max-w-md text-sm text-text-secondary">
-            Create your first room in under a minute — no downloads, no setup.
-          </p>
-          <Link to="/register">
-            <Button size="lg">
-              Create free account <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </Card>
-      </section>
-
-      <footer className="border-t border-border/60 px-4 py-10 sm:px-6">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-sm text-text-muted sm:flex-row">
-          <span className="flex items-center gap-2">
-            <Code2 className="h-4 w-4 text-primary" /> CodeMeet
-          </span>
-          <span>© {new Date().getFullYear()} CodeMeet. All rights reserved.</span>
-        </div>
-      </footer>
-    </div>
-  );
+      <section className="border-y border-[#eee4d8] bg-white/65 px-4 py-7 sm:px-6"><div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-semibold text-[#887d72] sm:justify-between sm:text-sm"><span>PAIR PROGRAMMING</span><span>REMOTE INTERVIEWS</span><span>LIVE MENTORING</span><span>TEAM DEBUGGING</span></div></section>
+      <section id="features" className="px-4 py-20 sm:px-6 sm:py-28"><div className="mx-auto max-w-6xl"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div className="max-w-xl"><p className="text-xs font-bold uppercase tracking-[.18em] text-primary">A little less friction</p><h2 className="mt-3 text-3xl font-semibold tracking-[-.04em] text-text sm:text-4xl">Everything in the same room.</h2></div><p className="max-w-sm text-sm leading-6 text-text-secondary">The tools you need for a great working session, thoughtfully brought together.</p></div><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{features.map(([Icon,title,desc,tone],i)=><Card key={title} className="lift-on-hover rounded-[1.5rem] border-[#eee4d8] p-6 sm:p-7"><div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${tone}`}><Icon className="h-5 w-5"/></div><div className="mt-7 flex items-center justify-between"><h3 className="text-base font-semibold tracking-tight text-text">{title}</h3><span className="text-xs font-semibold text-[#c4b8ab]">0{i+1}</span></div><p className="mt-2 text-sm leading-6 text-text-secondary">{desc}</p></Card>)}</div></div></section>
+      <section id="how-it-works" className="px-4 pb-20 sm:px-6 sm:pb-28"><div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-[#292720] px-6 py-10 text-white sm:px-12 sm:py-14"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#f5d56e]">Simple by design</p><h2 className="mt-3 text-3xl font-semibold tracking-[-.04em] sm:text-4xl">From hello to solved.</h2></div><p className="max-w-sm text-sm leading-6 text-[#c6c0b5]">No setup ritual. Just invite your people and get into the good stuff.</p></div><div className="mt-10 grid gap-8 sm:grid-cols-3">{steps.map(([n,title,desc,color])=><div key={n} className="border-t border-white/15 pt-5"><span className="text-sm font-bold" style={{color}}>{n}</span><h3 className="mt-3 text-lg font-semibold">{title}</h3><p className="mt-2 text-sm leading-6 text-[#c6c0b5]">{desc}</p></div>)}</div></div></section>
+      <section id="stats" className="px-4 pb-20 sm:px-6 sm:pb-28"><div className="mx-auto grid max-w-6xl grid-cols-2 gap-3 sm:grid-cols-4">{[[Video,'Video','Talk face to face','bg-[#ffece4]'],[Code2,'Code','Build in sync','bg-[#eee8ff]'],[Terminal,'Run','See results live','bg-[#e4f5eb]'],[Users,'Share','Learn together','bg-[#fff3c9]']].map(([Icon,value,label,bg])=><div key={value} className={`rounded-2xl p-5 sm:p-6 ${bg}`}><Icon className="h-5 w-5 text-[#51473f]"/><p className="mt-5 text-2xl font-semibold tracking-tight text-[#28231f]">{value}</p><p className="mt-1 text-xs font-medium text-[#6f655d]">{label}</p></div>)}</div></section>
+      <section className="px-4 pb-20 sm:px-6 sm:pb-28"><div className="relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-[#f7c6b7] px-6 py-12 sm:px-12 sm:py-16"><div className="absolute -right-8 -top-12 h-56 w-56 rounded-full border-[30px] border-white/25"/><div className="relative flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center"><div className="max-w-xl"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#87412e]">Your next good session starts here</p><h2 className="mt-3 text-3xl font-semibold tracking-[-.04em] text-[#40271f] sm:text-4xl">Make something great together.</h2><p className="mt-3 max-w-md text-sm leading-6 text-[#704b40]">Bring a teammate, open a room, and see where the idea goes.</p></div><Link to="/register"><Button size="lg" className="rounded-full bg-[#28231f] px-6 text-white hover:bg-[#40372f]">Let's get started <ArrowRight className="h-4 w-4"/></Button></Link></div></div></section>
+    </main>
+    <footer className="border-t border-[#eee4d8] bg-white/70 px-4 py-8 sm:px-6"><div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row"><Link to="/" className="flex items-center gap-2 text-sm font-bold tracking-tight text-text"><span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#ffede6] text-primary"><Code2 className="h-4 w-4"/></span>CodeMeet<span className="ml-1 rounded-full bg-[#e5f6ec] px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[#23866a]">build together</span></Link><span className="text-xs text-text-muted">© {new Date().getFullYear()} CodeMeet. Made for people who make things.</span></div></footer>
+  </div>;
 }

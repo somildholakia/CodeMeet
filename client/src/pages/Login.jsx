@@ -36,7 +36,7 @@ export default function Login() {
 
   return (
     <AuthLayout title="Welcome back" subtitle="Log in to continue to your workspace">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
           <label className="mb-1.5 block text-sm text-text-secondary">Email</label>
           <Input type="email" placeholder="you@example.com" {...register('email')} error={!!errors.email} />

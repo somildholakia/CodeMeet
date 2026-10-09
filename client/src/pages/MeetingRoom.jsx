@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { X } from 'lucide-react';
+import { X, Code2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { cn } from '../lib/cn.js';
 import { getSocket } from '../lib/socket.js';
@@ -179,11 +179,10 @@ export default function MeetingRoom() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
+    <div className="flex h-screen flex-col bg-[#fffaf4]">
+      <header className="flex min-h-[68px] shrink-0 items-center justify-between border-b border-[#eee4d8] bg-white px-4 sm:px-6">
         <div>
-          <p className="text-sm font-medium text-text">{meeting.title}</p>
-          <p className="text-xs text-text-muted">Room · {roomId}</p>
+          <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff0e9] text-primary"><Code2 className="h-4 w-4"/></span><div><p className="text-sm font-semibold text-text">{meeting.title}</p><p className="text-xs text-text-muted">Room · {roomId}</p></div></div>
         </div>
       </header>
 
@@ -201,14 +200,14 @@ export default function MeetingRoom() {
         {panel && (
           <div
             className={cn(
-              'flex flex-col border-border bg-background',
+              'flex flex-col border-[#eee4d8] bg-white',
               // Mobile: full-screen overlay above everything else.
               // Desktop (md+): fixed-width side panel, in normal flow.
               'fixed inset-0 z-50 md:static md:z-auto md:w-96 md:shrink-0 md:border-l'
             )}
           >
-            <div className="flex items-center justify-between border-b border-border px-3 py-2">
-              <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
+            <div className="flex items-center justify-between border-b border-[#eee4d8] bg-[#fffaf4] px-4 py-3">
+              <span className="text-xs font-bold uppercase tracking-[.14em] text-text-muted">
                 {panel === 'editor' ? 'Code Editor' : 'Chat'}
               </span>
               <button onClick={() => setPanel(null)} className="text-text-muted hover:text-text">

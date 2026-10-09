@@ -16,7 +16,7 @@ const LANGUAGES = [
   { value: 'rust', label: 'Rust' },
 ];
 
-const CURSOR_COLORS = ['#2563eb', '#22c55e', '#f59e0b', '#ec4899', '#a855f7', '#06b6d4'];
+const CURSOR_COLORS = ['#f45d3e', '#23866a', '#d99124', '#cf5785', '#8666d7', '#2f9da0'];
 
 function colorForSocketId(socketId) {
   let hash = 0;
@@ -152,12 +152,12 @@ export default function CodeEditor({ socket, roomId, initialCode }) {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-border px-3 py-2">
+    <div className="flex h-full flex-col bg-white">
+      <div className="flex items-center justify-between border-b border-[#eee4d8] bg-[#fffaf4] px-3 py-2.5">
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
-          className="h-8 rounded-md border border-border bg-surface px-2 text-xs text-text focus:outline-none"
+          className="h-9 rounded-xl border border-[#e8ded2] bg-white px-3 text-xs text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-[#f45d3e]/10"
         >
           {LANGUAGES.map((l) => (
             <option key={l.value} value={l.value}>
@@ -187,7 +187,7 @@ export default function CodeEditor({ socket, roomId, initialCode }) {
         />
       </div>
 
-      <div className="h-36 shrink-0 overflow-y-auto border-t border-border bg-surface p-3 font-mono text-xs">
+      <div className="h-36 shrink-0 overflow-y-auto border-t border-[#eee4d8] bg-[#fffaf4] p-3 font-mono text-xs">
         {isRunning && (
           <div className="flex items-center gap-2 text-text-muted">
             <Loader2 className="h-3.5 w-3.5 animate-spin" /> Running…

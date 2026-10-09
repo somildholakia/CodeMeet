@@ -6,7 +6,7 @@ export default function VideoGrid({ localStream, localUser, isMuted, isCameraOff
   const cols = total <= 1 ? 'grid-cols-1' : total <= 4 ? 'grid-cols-2' : 'grid-cols-3';
 
   return (
-    <div className={cn('grid gap-3 p-3', cols)}>
+    <div className={cn('grid gap-3 p-3 sm:gap-4 sm:p-5', cols)}>
       <VideoTile
         stream={localStream}
         name={localUser?.name}

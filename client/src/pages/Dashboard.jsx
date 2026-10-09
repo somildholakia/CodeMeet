@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, LogIn } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Plus, LogIn, Video, Users, ArrowUpRight, Sparkles, Clock3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Card from '../components/ui/Card.jsx';
 import Button from '../components/ui/Button.jsx';
@@ -15,62 +15,13 @@ export default function Dashboard() {
   const { data: meetings, isLoading } = useMeetings();
   const createMeeting = useCreateMeeting();
   const [joinCode, setJoinCode] = useState('');
+  const handleCreate = async () => { try { const meeting = await createMeeting.mutateAsync('Untitled Meeting'); navigate(`/meeting/${meeting.roomId}`); } catch(err) { toast.error(err.message); } };
+  const handleJoin = e => { e.preventDefault(); if(joinCode.trim()) navigate(`/meeting/${joinCode.trim()}`); };
 
-  const handleCreate = async () => {
-    try {
-      const meeting = await createMeeting.mutateAsync('Untitled Meeting');
-      navigate(`/meeting/${meeting.roomId}`);
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
-
-  const handleJoin = (e) => {
-    e.preventDefault();
-    if (!joinCode.trim()) return;
-    navigate(`/meeting/${joinCode.trim()}`);
-  };
-
-  return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <Card className="p-6">
-        <h1 className="text-lg font-semibold text-text">Welcome back, {user?.name?.split(' ')[0]}</h1>
-        <p className="mt-1 text-sm text-text-secondary">
-          You've hosted {user?.meetingsHosted ?? 0} and joined {user?.meetingsJoined ?? 0} meetings.
-        </p>
-
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Button onClick={handleCreate} isLoading={createMeeting.isPending}>
-            <Plus className="h-4 w-4" /> New meeting
-          </Button>
-
-          <form onSubmit={handleJoin} className="flex flex-1 gap-2">
-            <Input
-              placeholder="Enter room code to join"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value)}
-            />
-            <Button type="submit" variant="secondary">
-              <LogIn className="h-4 w-4" /> Join
-            </Button>
-          </form>
-        </div>
-      </Card>
-
-      <div>
-        <h2 className="mb-3 text-sm font-semibold text-text-secondary">Recent meetings</h2>
-        {isLoading && <p className="text-sm text-text-muted">Loading…</p>}
-        {!isLoading && meetings?.length === 0 && (
-          <Card className="p-8 text-center text-sm text-text-muted">
-            No meetings yet — create one to get started.
-          </Card>
-        )}
-        <div className="space-y-3">
-          {meetings?.map((m) => (
-            <MeetingCard key={m._id} meeting={m} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="mx-auto max-w-6xl space-y-7">
+    <section className="relative overflow-hidden rounded-[1.75rem] bg-[#f7c6b7] p-6 sm:p-9"><div className="absolute -right-6 -top-14 h-56 w-56 rounded-full border-[28px] border-white/25"/><div className="absolute right-32 -bottom-16 h-44 w-44 rounded-full bg-[#f9df8b]/60 blur-2xl"/><div className="relative flex flex-col justify-between gap-7 sm:flex-row sm:items-center"><div className="max-w-xl"><span className="inline-flex items-center gap-1.5 rounded-full bg-white/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.16em] text-[#87412e]"><Sparkles className="h-3.5 w-3.5"/> Your creative corner</span><h1 className="mt-4 text-3xl font-semibold tracking-[-.045em] text-[#40271f] sm:text-4xl">Hey {user?.name?.split(' ')[0]||'there'}, what's the plan?</h1><p className="mt-3 max-w-md text-sm leading-6 text-[#704b40]">Got a problem to solve or an idea to try? Your next great session starts with one click.</p><div className="mt-6 flex flex-wrap gap-3"><Button onClick={handleCreate} isLoading={createMeeting.isPending} className="rounded-full bg-[#28231f] px-5 text-white hover:bg-[#40372f]"><Plus className="h-4 w-4"/> New meeting</Button><Link to="/dashboard/meetings"><Button variant="secondary" className="rounded-full border-white/70 bg-white/65">View all meetings <ArrowUpRight className="h-4 w-4"/></Button></Link></div></div><div className="hidden w-40 shrink-0 sm:block"><div className="mx-auto flex h-28 w-28 rotate-6 items-center justify-center rounded-[2rem] bg-[#fffaf4] shadow-xl shadow-[#a8664e]/10"><Video className="h-12 w-12 text-primary"/></div><p className="mt-4 text-center text-xs font-semibold text-[#87412e]">Make it a team effort.</p></div></div></section>
+    <section className="grid gap-4 sm:grid-cols-3"><Card className="flex items-center gap-4 rounded-2xl p-5"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff0e9] text-primary"><Video className="h-5 w-5"/></span><div><p className="text-xs font-medium text-text-muted">Meetings hosted</p><p className="mt-1 text-2xl font-semibold tracking-tight text-text">{user?.meetingsHosted??0}</p></div></Card><Card className="flex items-center gap-4 rounded-2xl p-5"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eee8ff] text-[#8666d7]"><Users className="h-5 w-5"/></span><div><p className="text-xs font-medium text-text-muted">Meetings joined</p><p className="mt-1 text-2xl font-semibold tracking-tight text-text">{user?.meetingsJoined??0}</p></div></Card><Card className="flex items-center gap-4 rounded-2xl p-5"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e5f6ec] text-[#23866a]"><Clock3 className="h-5 w-5"/></span><div><p className="text-xs font-medium text-text-muted">Recent sessions</p><p className="mt-1 text-2xl font-semibold tracking-tight text-text">{meetings?.length??'—'}</p></div></Card></section>
+    <Card className="rounded-2xl p-5 sm:p-6"><div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eee8ff] text-[#8666d7]"><LogIn className="h-5 w-5"/></span><div className="min-w-0 flex-1"><h2 className="font-semibold text-text">Joining a room?</h2><p className="mt-1 text-sm text-text-secondary">Paste the room code your teammate shared with you.</p><form onSubmit={handleJoin} className="mt-4 flex flex-col gap-2 sm:flex-row"><Input placeholder="Enter room code" value={joinCode} onChange={e=>setJoinCode(e.target.value)} className="sm:max-w-md"/><Button type="submit" variant="secondary" className="rounded-xl"><LogIn className="h-4 w-4"/> Join room</Button></form></div></div></Card>
+    <section><div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-lg font-semibold tracking-tight text-text">Pick up where you left off</h2><p className="mt-1 text-sm text-text-muted">Your recent collaborative sessions.</p></div><Link to="/dashboard/meetings" className="text-xs font-semibold text-primary hover:underline">See all</Link></div>{isLoading&&<p className="text-sm text-text-muted">Loading your meetings…</p>}{!isLoading&&meetings?.length===0&&<Card className="rounded-2xl border-dashed p-8 text-center"><span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff0e9] text-primary"><Video className="h-5 w-5"/></span><p className="mt-4 font-semibold text-text">Your first session is waiting.</p><p className="mt-1 text-sm text-text-secondary">Create a room and invite someone to build with you.</p><Button onClick={handleCreate} className="mt-4 rounded-full" isLoading={createMeeting.isPending}><Plus className="h-4 w-4"/> Create a meeting</Button></Card>}<div className="space-y-3">{meetings?.slice(0,4).map(m=><MeetingCard key={m._id} meeting={m}/>)}</div></section>
+  </div>;
 }
