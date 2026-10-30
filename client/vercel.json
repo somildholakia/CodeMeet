@@ -1,8 +1,20 @@
 {
   "rewrites": [
     {
+      "source": "/api",
+      "destination": "https://codemeet-adp3.onrender.com/api"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://codemeet-adp3.onrender.com/api/:path*"
+    },
+    {
+      "source": "/socket.io",
+      "destination": "https://codemeet-adp3.onrender.com/socket.io/"
+    },
+    {
+      "source": "/socket.io/",
+      "destination": "https://codemeet-adp3.onrender.com/socket.io/"
     },
     {
       "source": "/socket.io/:path*",
