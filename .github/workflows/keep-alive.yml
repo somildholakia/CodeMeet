@@ -1,6 +1,12 @@
 name: Keep CodeMeet Awake
 
 on:
+  # Run once after workflow changes as well as on the regular schedule.
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/keep-alive.yml"
   # Render's free service can sleep after 15 minutes without traffic.
   # Run every 10 minutes to leave a buffer for GitHub schedule delays.
   schedule:
