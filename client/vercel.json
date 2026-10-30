@@ -5,6 +5,10 @@
       "destination": "https://codemeet-adp3.onrender.com/api/:path*"
     },
     {
+      "source": "/socket.io/:path*",
+      "destination": "https://codemeet-adp3.onrender.com/socket.io/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
