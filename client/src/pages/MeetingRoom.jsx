@@ -16,8 +16,8 @@ import ChatPanel from '../components/meeting/ChatPanel.jsx';
 export default function MeetingRoom() {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const socket = useMemo(() => getSocket(), []);
+  const { user, socketToken } = useAuth();
+  const socket = useMemo(() => getSocket(socketToken), [socketToken]);
 
   const [meeting, setMeeting] = useState(null);
   const [participantMeta, setParticipantMeta] = useState({}); // socketId -> { user, isMicMuted, isCameraOff }

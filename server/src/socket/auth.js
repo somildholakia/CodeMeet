@@ -3,19 +3,18 @@ import cookie from 'cookie';
 import User from '../models/User.js';
 
 /**
- * Runs before every socket connection is accepted. Reads the same
- * HTTP-only JWT cookie used by the REST API, verifies it, and attaches
- * the authenticated user to the socket. Connections without a valid
- * session are rejected outright — nobody can join a room by guessing
- * a roomId alone.
+ * Authenticate Socket.IO using the in-memory token returned by the REST
+ * auth endpoints. The HTTP-only cookie remains as a compatibility fallback
+ * for older clients; no session token is stored in localStorage.
  */
 export async function socketAuthMiddleware(socket, next) {
   try {
-    const rawCookie = socket.handshake.headers.cookie;
-    if (!rawCookie) return next(new Error('Authentication required'));
+    const cookieToken = cookie.parse(socket.handshake.headers.cookie || '').token;
+    const token = socket.handshake.auth?.token || cookieToken;
 
-    const { token } = cookie.parse(rawCookie);
-    if (!token) return next(new Error('Authentication required'));
+    if (typeof token !== 'string' || !token) {
+      return next(new Error('Authentication required'));
+    }
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(payload.sub).select('_id name email avatar');

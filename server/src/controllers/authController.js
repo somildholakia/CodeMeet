@@ -17,14 +17,14 @@ export const register = asyncHandler(async (req, res) => {
   const user = await registerUser(req.body);
   const token = signToken(user._id);
   setAuthCookie(res, token);
-  res.status(201).json({ success: true, user: serializeUser(user) });
+  res.status(201).json({ success: true, user: serializeUser(user), socketToken: token });
 });
 
 export const login = asyncHandler(async (req, res) => {
   const user = await authenticateUser(req.body);
   const token = signToken(user._id);
   setAuthCookie(res, token);
-  res.json({ success: true, user: serializeUser(user) });
+  res.json({ success: true, user: serializeUser(user), socketToken: token });
 });
 
 export const logout = asyncHandler(async (req, res) => {
@@ -33,5 +33,11 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 export const getMe = asyncHandler(async (req, res) => {
-  res.json({ success: true, user: serializeUser(req.user) });
+  // A fresh in-memory token lets Socket.IO authenticate without relying on
+  // cross-site cookies. REST authentication continues to use the HTTP-only cookie.
+  res.json({
+    success: true,
+    user: serializeUser(req.user),
+    socketToken: signToken(req.user._id),
+  });
 });
