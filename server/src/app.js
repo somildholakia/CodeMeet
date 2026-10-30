@@ -43,6 +43,10 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 app.use('/api', apiLimiter);
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+  next();
+});
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
