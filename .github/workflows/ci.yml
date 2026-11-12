@@ -21,7 +21,8 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
       - run: npm ci
-      - run: node --check src/server.js
+      - name: Syntax-check every server module
+        run: find src -type f -name '*.js' -print0 | xargs -0 -n1 node --check
       - name: Security audit
         run: npm audit --json > audit.json || true
       - name: Print audit summary
