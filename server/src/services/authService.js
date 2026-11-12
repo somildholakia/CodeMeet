@@ -37,7 +37,7 @@ async function getGoogleSigningKeys(forceRefresh = false) {
   }
 
   const cacheControl = response.headers.get('cache-control') || '';
-  const maxAgeMatch = cacheControl.match(/max-age=(\\d+)/i);
+  const maxAgeMatch = cacheControl.match(/max-age=(\d+)/i);
   const maxAgeSeconds = maxAgeMatch ? Number(maxAgeMatch[1]) : 3600;
   googleSigningKeys = data.keys;
   googleSigningKeysExpireAt = Date.now() + Math.max(60, Math.min(maxAgeSeconds, 86400)) * 1000;
