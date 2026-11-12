@@ -26,15 +26,10 @@ export default function Login() {
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(schema) });
 
-  const redirectAfterLogin = () => {
-    const redirectTo = location.state?.from || '/dashboard';
-    navigate(redirectTo, { replace: true });
-  };
-
   const onSubmit = async (values) => {
     try {
       await login(values);
-      redirectAfterLogin();
+      navigate(location.state?.from || '/dashboard', { replace: true });
     } catch (err) {
       toast.error(err.message);
     }
@@ -43,7 +38,7 @@ export default function Login() {
   const onGoogleCredential = useCallback(async (credential) => {
     try {
       await loginWithGoogle(credential);
-      redirectAfterLogin();
+      navigate(location.state?.from || '/dashboard', { replace: true });
     } catch (err) {
       toast.error(err.message);
     }
