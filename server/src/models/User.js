@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
     emailVerificationExpires: { type: Date, select: false },
     passwordResetTokenHash: { type: String, select: false },
     passwordResetExpires: { type: Date, select: false },
+    passwordChangedAt: { type: Date, default: null },
     avatar: { type: String, default: '' },
     meetingsHosted: { type: Number, default: 0 },
     meetingsJoined: { type: Number, default: 0 },
