@@ -187,7 +187,7 @@ export async function resetPassword(token, password) {
 
   if (!user) throw new ApiError(400, 'This password reset link is invalid or has expired');
   user.password = password;
-  user.passwordChangedAt = new Date();
+  user.sessionVersion = (user.sessionVersion || 0) + 1;
   user.passwordResetTokenHash = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
