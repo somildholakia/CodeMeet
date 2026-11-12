@@ -21,10 +21,15 @@ export const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const user = await User.findById(req.user._id).select('+password');
 
-  const isMatch = await bcrypt.compare(currentPassword, user.password);
-  if (!isMatch) throw new ApiError(401, 'Current password is incorrect');
+  if (user.password) {
+    const isMatch = await bcrypt.compare(currentPassword || '', user.password);
+    if (!isMatch) throw new ApiError(401, 'Current password is incorrect');
+  } else if (!(user.authMethods || []).includes('google')) {
+    throw new ApiError(400, 'This account cannot set a password right now');
+  }
 
   user.password = newPassword;
+  user.authMethods = [...new Set([...(user.authMethods || []), 'password'])];
   await user.save();
 
   res.json({ success: true, message: 'Password updated' });
