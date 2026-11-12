@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserRound, Video, Users, Sparkles, BadgeCheck, MailCheck, KeyRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Card from '../components/ui/Card.jsx';
@@ -9,7 +10,8 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 
 export default function Profile() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState(user?.name || '');
   const [saving, setSaving] = useState(false);
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '' });
@@ -35,9 +37,9 @@ export default function Profile() {
     setChangingPassword(true);
     try {
       await api.put('/profile/password', passwords);
-      toast.success(hasPassword ? 'Password updated' : 'Password added to your account');
-      setPasswords({ currentPassword: '', newPassword: '' });
-      setUser((current) => ({ ...current, authMethods: [...new Set([...(current?.authMethods || []), 'password'])] }));
+      toast.success(hasPassword ? 'Password updated. Please sign in again.' : 'Password added. Please sign in again.');
+      await logout();
+      navigate('/login', { replace: true });
     } catch (error) {
       toast.error(error.message);
     } finally {
