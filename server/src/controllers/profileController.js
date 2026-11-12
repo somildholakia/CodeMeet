@@ -29,6 +29,7 @@ export const changePassword = asyncHandler(async (req, res) => {
   }
 
   user.password = newPassword;
+  user.passwordChangedAt = new Date();
   user.authMethods = [...new Set([...(user.authMethods || []), 'password'])];
   await user.save();
 
