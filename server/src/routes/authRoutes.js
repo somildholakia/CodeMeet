@@ -48,7 +48,7 @@ router.post(
 );
 
 router.post('/google', authLimiter, [body('credential').isString().notEmpty()], validate, googleLogin);
-router.post('/verify-email', [body('token').isString().notEmpty()], validate, verifyEmail);
+router.post('/verify-email', authLimiter, [body('token').isString().notEmpty()], validate, verifyEmail);
 router.post('/resend-verification', authLimiter, [body('email').isEmail().normalizeEmail()], validate, resendVerificationEmail);
 router.post('/forgot-password', authLimiter, [body('email').isEmail().normalizeEmail()], validate, forgotPassword);
 router.post('/reset-password', authLimiter, [
