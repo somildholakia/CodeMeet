@@ -127,7 +127,16 @@ export async function authenticateGoogle(credential) {
   }
 
   const email = String(payload.email).trim().toLowerCase();
-  let user = await User.findOne({ $or: [{ googleId: payload.sub }, { email }] }).select('+googleId');
+  const [googleUser, emailUser] = await Promise.all([
+    User.findOne({ googleId: payload.sub }).select('+googleId'),
+    User.findOne({ email }).select('+googleId'),
+  ]);
+
+  if (googleUser && emailUser && googleUser._id.toString() !== emailUser._id.toString()) {
+    throw new ApiError(409, 'This Google account and email belong to different CodeMeet accounts.');
+  }
+
+  let user = googleUser || emailUser;
   if (!user) {
     user = await User.create({
       name: payload.name || email.split('@')[0],
@@ -142,6 +151,7 @@ export async function authenticateGoogle(credential) {
       throw new ApiError(409, 'This email is already linked to a different Google account');
     }
     user.googleId = payload.sub;
+    user.email = email;
     user.emailVerified = true;
     user.authMethods = [...new Set([...(user.authMethods || []), 'google'])];
     if (!user.avatar && payload.picture) user.avatar = payload.picture;
