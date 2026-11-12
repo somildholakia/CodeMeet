@@ -17,9 +17,9 @@ export async function socketAuthMiddleware(socket, next) {
     }
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(payload.sub).select('_id name email avatar emailVerified passwordChangedAt');
+    const user = await User.findById(payload.sub).select('_id name email avatar emailVerified sessionVersion');
     if (!user || !user.emailVerified) return next(new Error('Authentication required'));
-    if (user.passwordChangedAt && payload.iat * 1000 < user.passwordChangedAt.getTime()) {
+    if ((payload.sv ?? 0) !== (user.sessionVersion ?? 0)) {
       return next(new Error('Session expired. Please log in again.'));
     }
 
