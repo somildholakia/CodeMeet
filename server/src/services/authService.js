@@ -1,10 +1,12 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, createPublicKey, verify as verifySignature } from 'node:crypto';
 import User from '../models/User.js';
 import { ApiError } from '../utils/ApiError.js';
 import { sendPasswordResetEmail, sendVerificationEmail } from './emailService.js';
 
 const hashToken = (token) => createHash('sha256').update(token).digest('hex');
 const createToken = () => randomBytes(32).toString('hex');
+let googleSigningKeys = null;
+let googleSigningKeysExpireAt = 0;
 
 async function issueVerificationEmail(user) {
   const token = createToken();
@@ -12,6 +14,97 @@ async function issueVerificationEmail(user) {
   user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
   await user.save();
   await sendVerificationEmail(user, token);
+}
+
+async function getGoogleSigningKeys(forceRefresh = false) {
+  if (!forceRefresh && googleSigningKeys && Date.now() < googleSigningKeysExpireAt) {
+    return googleSigningKeys;
+  }
+
+  let response;
+  try {
+    response = await fetch('https://www.googleapis.com/oauth2/v3/certs', {
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch {
+    throw new ApiError(503, 'Google sign-in is temporarily unavailable. Please try again.');
+  }
+  if (!response.ok) throw new ApiError(503, 'Google sign-in is temporarily unavailable. Please try again.');
+
+  const data = await response.json();
+  if (!Array.isArray(data.keys) || data.keys.length === 0) {
+    throw new ApiError(503, 'Google sign-in verification is temporarily unavailable.');
+  }
+
+  const cacheControl = response.headers.get('cache-control') || '';
+  const maxAgeMatch = cacheControl.match(/max-age=(\\d+)/i);
+  const maxAgeSeconds = maxAgeMatch ? Number(maxAgeMatch[1]) : 3600;
+  googleSigningKeys = data.keys;
+  googleSigningKeysExpireAt = Date.now() + Math.max(60, Math.min(maxAgeSeconds, 86400)) * 1000;
+  return googleSigningKeys;
+}
+
+function decodeJwtPart(part) {
+  return JSON.parse(Buffer.from(part, 'base64url').toString('utf8'));
+}
+
+async function verifyGoogleCredential(credential) {
+  if (typeof credential !== 'string' || credential.length < 100 || credential.length > 10000) {
+    throw new ApiError(400, 'Google sign-in credential is invalid');
+  }
+
+  const parts = credential.split('.');
+  if (parts.length !== 3) throw new ApiError(401, 'Google sign-in could not be verified');
+
+  let header;
+  let payload;
+  try {
+    header = decodeJwtPart(parts[0]);
+    payload = decodeJwtPart(parts[1]);
+  } catch {
+    throw new ApiError(401, 'Google sign-in could not be verified');
+  }
+
+  if (header.alg !== 'RS256' || typeof header.kid !== 'string') {
+    throw new ApiError(401, 'Google sign-in could not be verified');
+  }
+
+  let keys = await getGoogleSigningKeys();
+  let jwk = keys.find((key) => key.kid === header.kid && key.kty === 'RSA' && key.use === 'sig' && (!key.alg || key.alg === 'RS256'));
+  if (!jwk) {
+    keys = await getGoogleSigningKeys(true);
+    jwk = keys.find((key) => key.kid === header.kid && key.kty === 'RSA' && key.use === 'sig' && (!key.alg || key.alg === 'RS256'));
+  }
+  if (!jwk) throw new ApiError(401, 'Google sign-in could not be verified');
+
+  let signatureIsValid = false;
+  try {
+    const publicKey = createPublicKey({ key: jwk, format: 'jwk' });
+    signatureIsValid = verifySignature(
+      'RSA-SHA256',
+      Buffer.from(`${parts[0]}.${parts[1]}`),
+      publicKey,
+      Buffer.from(parts[2], 'base64url')
+    );
+  } catch {
+    throw new ApiError(401, 'Google sign-in could not be verified');
+  }
+  if (!signatureIsValid) throw new ApiError(401, 'Google sign-in could not be verified');
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const audienceMatches = Array.isArray(payload.aud)
+    ? payload.aud.includes(clientId) && (!payload.azp || payload.azp === clientId)
+    : payload.aud === clientId;
+  const issuerValid = ['accounts.google.com', 'https://accounts.google.com'].includes(payload.iss);
+  const notExpired = Number.isFinite(Number(payload.exp)) && Number(payload.exp) * 1000 > Date.now();
+  const issuedAtValid = Number.isFinite(Number(payload.iat)) && Number(payload.iat) * 1000 <= Date.now() + 60_000;
+  const emailVerified = payload.email_verified === true || payload.email_verified === 'true';
+
+  if (!audienceMatches || !issuerValid || !notExpired || !issuedAtValid || !emailVerified || !payload.email || !payload.sub) {
+    throw new ApiError(401, 'Google sign-in could not be verified');
+  }
+
+  return payload;
 }
 
 export async function registerUser({ name, email, password }) {
@@ -73,7 +166,7 @@ export async function resendVerification(email) {
 }
 
 export async function requestPasswordReset(email) {
-  const user = await User.findOne({ email: String(email || '').trim().toLowerCase() });
+  const user = await User.findOne({ email: String(email || '').trim().toLowerCase() }).select('+password');
   if (!user || !user.password) return;
 
   const token = createToken();
@@ -104,28 +197,8 @@ export async function authenticateGoogle(credential) {
   if (!process.env.GOOGLE_CLIENT_ID) {
     throw new ApiError(503, 'Google sign-in is not configured on this server');
   }
-  if (typeof credential !== 'string' || credential.length < 100 || credential.length > 10000) {
-    throw new ApiError(400, 'Google sign-in credential is invalid');
-  }
 
-  let response;
-  try {
-    response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {
-      signal: AbortSignal.timeout(8000),
-    });
-  } catch {
-    throw new ApiError(503, 'Google sign-in is temporarily unavailable. Please try again.');
-  }
-  if (!response.ok) throw new ApiError(401, 'Google sign-in could not be verified');
-
-  const payload = await response.json();
-  const issuerValid = ['accounts.google.com', 'https://accounts.google.com'].includes(payload.iss);
-  const notExpired = Number(payload.exp) * 1000 > Date.now();
-  const emailVerified = payload.email_verified === true || payload.email_verified === 'true';
-  if (payload.aud !== process.env.GOOGLE_CLIENT_ID || !issuerValid || !notExpired || !emailVerified || !payload.email || !payload.sub) {
-    throw new ApiError(401, 'Google sign-in could not be verified');
-  }
-
+  const payload = await verifyGoogleCredential(credential);
   const email = String(payload.email).trim().toLowerCase();
   const [googleUser, emailUser] = await Promise.all([
     User.findOne({ googleId: payload.sub }).select('+googleId'),
