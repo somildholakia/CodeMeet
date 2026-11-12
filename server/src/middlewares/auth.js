@@ -17,8 +17,8 @@ export const requireAuth = asyncHandler(async (req, res, next) => {
   const user = await User.findById(payload.sub);
   if (!user) throw new ApiError(401, 'User no longer exists');
   if (!user.emailVerified) throw new ApiError(403, 'Please verify your email address before using CodeMeet.');
-  if (user.passwordChangedAt && payload.iat * 1000 < user.passwordChangedAt.getTime()) {
-    throw new ApiError(401, 'Your password changed. Please log in again.');
+  if ((payload.sv ?? 0) !== (user.sessionVersion ?? 0)) {
+    throw new ApiError(401, 'Your account security settings changed. Please log in again.');
   }
 
   req.user = user;
