@@ -24,7 +24,7 @@ function serializeUser(user) {
 }
 
 function startSession(res, user) {
-  const token = signToken(user._id);
+  const token = signToken(user._id, user.sessionVersion || 0);
   setAuthCookie(res, token);
   return { user: serializeUser(user), socketToken: token };
 }
@@ -78,6 +78,6 @@ export const getMe = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     user: serializeUser(req.user),
-    socketToken: signToken(req.user._id),
+    socketToken: signToken(req.user._id, req.user.sessionVersion || 0),
   });
 });
