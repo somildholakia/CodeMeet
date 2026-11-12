@@ -25,28 +25,38 @@ export function AuthProvider({ children }) {
     restoreSession();
   }, [restoreSession]);
 
-  const login = async (credentials) => {
-    const { data } = await api.post('/auth/login', credentials);
+  const applySession = (data) => {
     setUser(data.user);
     setSocketToken(data.socketToken || null);
     return data.user;
+  };
+
+  const login = async (credentials) => {
+    const { data } = await api.post('/auth/login', credentials);
+    return applySession(data);
+  };
+
+  const loginWithGoogle = async (credential) => {
+    const { data } = await api.post('/auth/google', { credential });
+    return applySession(data);
   };
 
   const register = async (payload) => {
     const { data } = await api.post('/auth/register', payload);
-    setUser(data.user);
-    setSocketToken(data.socketToken || null);
-    return data.user;
+    return data;
   };
 
   const logout = async () => {
-    await api.post('/auth/logout');
-    setUser(null);
-    setSocketToken(null);
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      setUser(null);
+      setSocketToken(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, socketToken, isLoading, login, register, logout, setUser }}>
+    <AuthContext.Provider value={{ user, socketToken, isLoading, login, loginWithGoogle, register, logout, setUser, restoreSession }}>
       {children}
     </AuthContext.Provider>
   );

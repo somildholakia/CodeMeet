@@ -3,9 +3,9 @@ import cookie from 'cookie';
 import User from '../models/User.js';
 
 /**
- * Authenticate Socket.IO using the in-memory token returned by the REST
- * auth endpoints. The HTTP-only cookie remains as a compatibility fallback
- * for older clients; no session token is stored in localStorage.
+ * Authenticate Socket.IO using the in-memory token returned by REST auth.
+ * The HTTP-only cookie remains a compatibility fallback; session tokens are
+ * never written to localStorage.
  */
 export async function socketAuthMiddleware(socket, next) {
   try {
@@ -17,8 +17,11 @@ export async function socketAuthMiddleware(socket, next) {
     }
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(payload.sub).select('_id name email avatar');
-    if (!user) return next(new Error('Authentication required'));
+    const user = await User.findById(payload.sub).select('_id name email avatar emailVerified sessionVersion');
+    if (!user || !user.emailVerified) return next(new Error('Authentication required'));
+    if ((payload.sv ?? 0) !== (user.sessionVersion ?? 0)) {
+      return next(new Error('Session expired. Please log in again.'));
+    }
 
     socket.user = { id: user._id.toString(), name: user.name, avatar: user.avatar };
     next();
