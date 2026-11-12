@@ -94,6 +94,7 @@ export async function resetPassword(token, password) {
 
   if (!user) throw new ApiError(400, 'This password reset link is invalid or has expired');
   user.password = password;
+  user.passwordChangedAt = new Date();
   user.passwordResetTokenHash = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
@@ -107,14 +108,21 @@ export async function authenticateGoogle(credential) {
     throw new ApiError(400, 'Google sign-in credential is invalid');
   }
 
-  // Validate Google's signed ID token and its audience, issuer, expiry and verified email.
-  const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+  let response;
+  try {
+    response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch {
+    throw new ApiError(503, 'Google sign-in is temporarily unavailable. Please try again.');
+  }
   if (!response.ok) throw new ApiError(401, 'Google sign-in could not be verified');
 
   const payload = await response.json();
   const issuerValid = ['accounts.google.com', 'https://accounts.google.com'].includes(payload.iss);
   const notExpired = Number(payload.exp) * 1000 > Date.now();
-  if (payload.aud !== process.env.GOOGLE_CLIENT_ID || !issuerValid || !notExpired || payload.email_verified !== 'true' || !payload.email) {
+  const emailVerified = payload.email_verified === true || payload.email_verified === 'true';
+  if (payload.aud !== process.env.GOOGLE_CLIENT_ID || !issuerValid || !notExpired || !emailVerified || !payload.email || !payload.sub) {
     throw new ApiError(401, 'Google sign-in could not be verified');
   }
 
